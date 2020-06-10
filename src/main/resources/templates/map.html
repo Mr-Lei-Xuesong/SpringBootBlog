@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>地图</title>
+    <link th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" rel="stylesheet">
+    <script type="text/javascript" th:src="@{/webjars/jquery/jquery.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/wangEditor/release/wangEditor.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/echarts/echarts.min.js}"></script>
+    <script type="text/javascript"
+            src="https://api.map.baidu.com/api?v=1.0&type=webgl&ak=AXN5MGpt678qOoiYLaIDz1GsgaXDRDE3"></script>
+    <link th:href="@{/css/main.css}" rel="stylesheet">
+    <style type="text/css">
+        html {
+            height: 100%
+        }
+
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #container {
+            height: 600px;
+            width: 1230px;
+        }
+    </style>
+</head>
+<body>
+<!--引入抽取的topbar-->
+<div th:replace="commons/bar::topbar"></div>
+<div class="container-fluid">
+    <div class="row">
+        <!--引入抽取的sidebar-->
+        <div th:replace="commons/bar::sidebar(activeUri='map.html')"></div>
+        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
+            <form th:action="@{/maps}" method="post">
+                <div class="input-group mb-3">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="submit">查询</button>
+                    </div>
+                    <input type="text" name="name" class="form-control" th:text="${city}" placeholder="请输入城市" required>
+                    <div class="input-group-append">
+                        <span style="font-size: x-large">
+                            当前城市:[<span th:text="${city}" th:if="${not #strings.isEmpty(city)}"></span>]&nbsp;
+                            经度:[<span th:text="${x}">116.404</span>]&nbsp;
+                            纬度:[<span th:text="${y}">39.915</span>]</span>
+                    </div>
+                </div>
+            </form>
+            <div id="container"></div>
+            <script type="text/javascript" th:inline="javascript">
+                let X = [[${x}]];
+                let Y = [[${y}]];
+                // 创建地图实例
+                let map = new BMapGL.Map("container");
+                // 创建点坐标
+                let point = new BMapGL.Point(X, Y);
+
+                // 初始化地图，设置中心点坐标和地图级别
+                map.centerAndZoom(point, 15);
+                // 创建标注
+                let marker = new BMapGL.Marker(point);
+                // 将标注添加到地图中
+                map.addOverlay(marker);
+                // 开启鼠标滚轮缩放
+                map.enableScrollWheelZoom(true);
+                // 设置地图旋转角度
+                map.setHeading(64.5);
+                // 设置地图的倾斜角度
+                map.setTilt(73);
+                // 添加比例尺控件
+                let scaleCtrl = new BMapGL.ScaleControl();
+                map.addControl(scaleCtrl);
+                // 添加比例尺控件
+                let zoomCtrl = new BMapGL.ZoomControl();
+                map.addControl(zoomCtrl);
+            </script>
+        </main>
+    </div>
+</div>
+</body>
+</html>

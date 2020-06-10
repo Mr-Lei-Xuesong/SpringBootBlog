@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>系统管理</title>
+    <link th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" rel="stylesheet">
+    <script type="text/javascript" th:src="@{/webjars/jquery/jquery.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+    <link th:href="@{/css/main.css}" rel="stylesheet">
+    <script>
+        $(function () {
+            $("#selectAll").click(function () {
+                $("input[name='checkItem']").prop("checked", this.checked);
+            });
+        });
+
+        function delComment(id) {
+            if (confirm("确定要删除吗？")) {
+                $.ajax({
+                    url: "/del",
+                    type: "POST",
+                    data: {
+                        "id": id
+                    },
+                    success: function (date) {
+                        if (date === "ok") {
+                            alert("删除成功");
+                            window.location.reload();
+                        } else {
+                            alert("删除失败");
+                        }
+                    }
+                });
+            }
+        }
+
+        function deleteBatch() {
+            let checkNum = $("input[name=checkItem]:checked").length;
+            if (checkNum === 0) {
+                alert("你还没有选择要删除的数据");
+                return false;
+            }
+            if (confirm("确定删除选中？")) {
+                let checkList = Array();
+                $("input[name=checkItem]:checked").each(function () {
+                    checkList.push($(this).val());
+                });
+                $.ajax({
+                    url: "/delete",
+                    type: "POST",
+                    data: {
+                        "checklist": checkList
+                    },
+                    success: function (date) {
+                        if (date === "ok") {
+                            alert("批量删除成功");
+                            window.location.reload();
+                        } else {
+                            alert("删除失败");
+                        }
+                    }
+                });
+            }
+        }
+
+        function getEditComment(id) {
+            $.ajax({
+                url: "/getEditComment",
+                type: "POST",
+                data: {"id": id},
+                success: function (date) {
+                    if (date != null) {
+                        $("#cid").val(date.id);
+                        $("#cauthor").val(date.author);
+                        $("#ccontent").val(date.content);
+                    } else {
+                        alert("未获取到数据");
+                    }
+                }
+            });
+        }
+
+        function updateComment() {
+            $.ajax({
+                url: "/update",
+                type: "POST",
+                data: $("#update_form").serialize(),
+                success: function (date) {
+                    if (date === "ok") {
+                        alert("修改数据成功");
+                        window.location.reload();
+                    } else {
+                        alert("修改失败");
+                    }
+                }
+            });
+        }
+
+        function addComment() {
+            $.ajax({
+                url: "/addComment",
+                type: "POST",
+                data: $("#add_form").serialize(),
+                success: function (date) {
+                    if (date === "ok") {
+                        alert("添加成功");
+                        window.location.reload();
+                    } else {
+                        alert("添加失败");
+                    }
+                }
+            });
+
+        }
+    </script>
+</head>
+
+<body>
+<!--引入抽取的topbar-->
+<div th:replace="commons/bar::topbar"></div>
+<div class="container-fluid">
+    <div class="row">
+        <!--引入抽取的sidebar-->
+        <div th:replace="commons/bar::sidebar(activeUri='main')"></div>
+        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
+            <div style="float: left;">
+                <form class="form-inline" action="/findBy" method="post">
+                    <div class="form-group">
+                        <label for="cid">编号:</label>
+                        <input type="text" class="form-control" name="id"
+                               th:value="${comment!=null?comment.id:''}" placeholder="请输入查询编号">
+                    </div>
+                    <div class="form-group">
+                        <label for="ccontent">&nbsp;&nbsp;内容:</label>
+                        <input type="text" class="form-control" name="content"
+                               th:value="${comment!=null?comment.content:''}" placeholder="请输入查询内容">
+                    </div>
+                    <div class="form-group">
+                        <label for="cauthor">&nbsp;&nbsp;作者:</label>
+                        <input type="text" class="form-control" name="author"
+                               th:value="${comment!=null?comment.author:''}" placeholder="请输入查询作者">
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-primary">查询信息</button>
+                </form>
+            </div>
+            <div style="float: right;margin: 5px;">
+                <button class="btn btn-sm btn-danger" onclick="deleteBatch()">删除选中</button>
+                <button class="btn btn-sm btn-success" data-toggle="modal"
+                        data-target="#Modal_add">添加信息
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-striped table-sm">
+                    <thead>
+                    <tr>
+                        <th>
+                            <label for="selectAll"></label><input type="checkbox" id="selectAll"
+                                                                  class="form-check-inline" th:text="全选">
+                        </th>
+                        <th>编号</th>
+                        <th>内容</th>
+                        <th>作者</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="com:${pageInfo.list}">
+                        <td>
+                            <label>
+                                <input type="checkbox" name="checkItem" th:value="${com.id}"/>
+                            </label>
+                        </td>
+                        <td th:text="${com.id}"></td>
+                        <td th:text="${com.content}"></td>
+                        <td th:text="${com.author}"></td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" data-toggle="modal"
+                                    data-target="#Modal_edit" th:onclick="'getEditComment('+${com.id}+')'">编辑
+                            </button>
+                            <button class="btn btn-sm btn-danger deleteBtn" th:onclick="'delComment('+${com.id}+')'">
+                                删除
+                            </button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="text-center text-info">
+                共有<span th:text="${pageInfo.pages}"></span>页
+                &nbsp;&nbsp;当前是<span th:text="${pageInfo.pageNum}"></span>页
+                &nbsp;&nbsp;共有<span th:text="${pageInfo.total}"></span>记录
+            </div>
+            <div class="text-center">
+                <a class="btn btn-sm btn-secondary"
+                   th:href="'/findBy?pageNo='+1+'&id='+${comment!=null?(comment.id!=null?comment.id:''):''}+'&content='+${comment!=null?comment.content:''}+'&author='+${comment!=null?comment.author:''}">第一页</a>
+                <a class="btn btn-sm btn-secondary"
+                   th:href="'/findBy?pageNo='+${pageInfo.prePage}+'&id='+${comment!=null?(comment.id!=null?comment.id:''):''}+'&content='+${comment!=null?comment.content:''}+'&author='+${comment!=null?comment.author:''}">上一页</a>
+                <a class="btn btn-sm btn-secondary"
+                   th:href="'/findBy?pageNo='+${pageInfo.nextPage}+'&id='+${comment!=null?(comment.id!=null?comment.id:''):''}+'&content='+${comment!=null?comment.content:''}+'&author='+${comment!=null?comment.author:''}">下一页</a>
+                <a class="btn btn-sm btn-secondary"
+                   th:href="'/findBy?pageNo='+${pageInfo.pages}+'&id='+${comment!=null?(comment.id!=null?comment.id:''):''}+'&content='+${comment!=null?comment.content:''}+'&author='+${comment!=null?comment.author:''}">最后页</a>
+            </div>
+            <!-- 编辑模态框 -->
+            <div class="modal fade" id="Modal_edit" tabindex="-1" data-backdrop="static" data-Keyboard="false">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <!-- 模态框头部 -->
+                        <div class="modal-header">
+                            <h4 class="modal-title">编辑信息</h4>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        </div>
+
+                        <!-- 模态框主体 -->
+                        <div class="modal-body">
+                            <form id="update_form">
+                                <div class="input-group input-group-sm mb-1">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">编号</span>
+                                    </div>
+                                    <input type="text" class="form-control" readonly="true" id="cid" name="id">
+                                </div>
+                                <div class="input-group input-group-sm mb-1">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">作者</span>
+                                    </div>
+                                    <input type="text" class="form-control" readonly="true" id="cauthor" name="author">
+                                </div>
+                                <div class="input-group input-group-sm mb-1">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">内容</span>
+                                    </div>
+                                    <textarea type="text" class="form-control" id="ccontent" name="content"
+                                              style="height: 200px;"></textarea>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- 模态框底部 -->
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" onclick="updateComment()">提交</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <!--添加模态框-->
+            <div class="modal fade" id="Modal_add" tabindex="-1" data-backdrop="static" data-Keyboard="false">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <!-- 模态框头部 -->
+                        <div class="modal-header">
+                            <h4 class="modal-title">添加信息</h4>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        </div>
+
+                        <!-- 模态框主体 -->
+                        <div class="modal-body">
+                            <form id="add_form">
+                                <div class="input-group input-group-sm mb-1">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">作者</span>
+                                    </div>
+                                    <input type="text" class="form-control" name="author">
+                                </div>
+                                <div class="input-group input-group-sm mb-1">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">内容</span>
+                                    </div>
+                                    <textarea type="text" class="form-control" name="content"
+                                              style="height: 200px;"></textarea>
+                                </div>
+                            </form>
+                        </div>
+                        <!-- 模态框底部 -->
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" onclick="addComment()">提交</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

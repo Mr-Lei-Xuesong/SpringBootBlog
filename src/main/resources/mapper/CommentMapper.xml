@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.demo.mapper.CommentMapper">
+    <select id="getAll" resultType="comment">
+        select * from comment
+    </select>
+
+    <delete id="delComment">
+        delete from comment where id=#{id}
+    </delete>
+
+    <select id="getById" resultType="comment">
+        select * from comment where id=#{id}
+    </select>
+
+    <update id="updComment" parameterType="comment">
+        update comment
+        <set>
+            <if test="content!=null and content!=''">
+                content=#{content},
+            </if>
+            <if test="author!=null and author!=''">
+                author=#{author}
+            </if>
+        </set>
+        <where>
+            id=#{id}
+        </where>
+    </update>
+
+    <insert id="addComment" parameterType="comment">
+        insert into comment (content,author) values (#{content},#{author})
+    </insert>
+
+    <select id="findByCondition" parameterType="comment" resultType="comment">
+        select * from comment
+        <where>
+            <if test="id !=null">
+                and id=#{id}
+            </if>
+            <if test="content !=null and content !='' ">
+                and content like concat('%',#{content},'%')
+            </if>
+            <if test="author !=null and author !='' ">
+                and author like concat('%',#{author},'%')
+            </if>
+        </where>
+    </select>
+</mapper>

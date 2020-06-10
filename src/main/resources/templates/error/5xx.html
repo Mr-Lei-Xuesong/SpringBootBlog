@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>错误</title>
+    <link th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" rel="stylesheet">
+    <script type="text/javascript" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/jquery/jquery.min.js}"></script>
+    <link th:href="@{/css/main.css}" rel="stylesheet">
+</head>
+
+<body>
+<!--引入抽取的topbar-->
+<div th:replace="commons/bar::topbar"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <!--引入抽取的sidebar-->
+        <div th:replace="commons/bar::sidebar"></div>
+        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
+            <h1>status:[[${status}]]</h1>
+            <h2>timestamp:[[${timestamp}]]</h2>
+            <h2>error:[[${error}]]</h2>
+            <h2>exception:[[${exception}]]</h2>
+            <h2>message:[[${message}]]</h2>
+        </main>
+    </div>
+</div>
+</body>
+</html>
