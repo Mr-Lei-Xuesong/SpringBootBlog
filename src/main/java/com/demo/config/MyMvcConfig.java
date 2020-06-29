@@ -23,6 +23,7 @@ public class MyMvcConfig implements WebMvcConfigurer {
         registry.addInterceptor(new LoginHandlerInterceptor()).addPathPatterns("/**").excludePathPatterns("/webjars/**", "/index.html", "/register.html", "/", "/user/login", "/user/add", "/css/**", "/js/**", "/img/**");
     }
 
+    //注册国际化
     @Bean
     public LocaleResolver localeResolver() {
         return new MyLocaleResolver();

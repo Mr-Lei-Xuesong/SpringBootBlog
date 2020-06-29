@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.UUID;
 
 @Controller
@@ -84,9 +86,10 @@ public class UserController {
     }
 
     @GetMapping("/fileDownload")
-    public ResponseEntity<byte[]> fileDownload(String filename) {
+    public ResponseEntity<byte[]> fileDownload(HttpServletRequest request,String filename) throws Exception {
         File file = new File(uploadfilepath + File.separator + filename);
         HttpHeaders headers = new HttpHeaders();
+        filename = getFilename(request, filename);
         headers.setContentDispositionFormData("attachment", filename);
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
         try {
@@ -95,5 +98,20 @@ public class UserController {
             e.printStackTrace();
             return new ResponseEntity<>(e.getMessage().getBytes(), HttpStatus.EXPECTATION_FAILED);
         }
+    }
+
+    private String getFilename(HttpServletRequest request, String filename) throws Exception {
+        //IE不同版本User-Agent中出现的关键词
+        String[] IEBrowserKeyWords = {"MSIE", "Trident", "Edge"};
+        //获取请求头代理信息
+        String userAgent = request.getHeader("User-Agent");
+        for (String keyWord : IEBrowserKeyWords) {
+            if (userAgent.contains(keyWord)) {
+                //IE内核浏览器，统一为UTF-8编码显示，并对转换的+进行更正
+                return URLEncoder.encode(filename, "UTF-8").replace("+", " ");
+            }
+        }
+        //火狐等其他浏览器统一为ISO-8859-1编码显示
+        return new String(filename.getBytes("UTF-8"), "ISO-8859-1");
     }
 }

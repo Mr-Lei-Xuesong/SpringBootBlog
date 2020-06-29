@@ -44,7 +44,7 @@
                     <div class="input-group-append">
                         <button class="btn btn-primary" type="submit">查询</button>
                     </div>
-                    <input type="text" name="name" class="form-control" th:text="${city}" placeholder="请输入城市" required>
+                    <input type="text" name="name" class="form-control" placeholder="请输入城市" required>
                     <div class="input-group-append">
                         <span style="font-size: x-large">
                             当前城市:[<span th:text="${city}" th:if="${not #strings.isEmpty(city)}"></span>]&nbsp;
